@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <X11/Xlib.h>
 
 #include "arg.h"
 #include "slstatus.h"
@@ -19,7 +18,6 @@ struct arg {
 
 char buf[1024];
 static volatile sig_atomic_t done;
-static Display *dpy;
 
 #include "config.h"
 
@@ -41,7 +39,7 @@ difftimespec(struct timespec *res, struct timespec *a, struct timespec *b)
 static void
 usage(void)
 {
-	die("usage: %s [-s] [-1]", argv0);
+	die("usage: %s [-1]", argv0);
 }
 
 int
@@ -50,17 +48,13 @@ main(int argc, char *argv[])
 	struct sigaction act;
 	struct timespec start, current, diff, intspec, wait;
 	size_t i, len;
-	int sflag, ret;
+	int ret;
 	char status[MAXLEN];
 	const char *res;
 
-	sflag = 0;
 	ARGBEGIN {
 	case '1':
 		done = 1;
-		/* FALLTHROUGH */
-	case 's':
-		sflag = 1;
 		break;
 	default:
 		usage();
@@ -75,9 +69,6 @@ main(int argc, char *argv[])
 	sigaction(SIGTERM, &act, NULL);
 	act.sa_flags |= SA_RESTART;
 	sigaction(SIGUSR1, &act, NULL);
-
-	if (!sflag && !(dpy = XOpenDisplay(NULL)))
-		die("XOpenDisplay: Failed to open display");
 
 	do {
 		if (clock_gettime(CLOCK_MONOTONIC, &start) < 0)
@@ -95,16 +86,10 @@ main(int argc, char *argv[])
 			len += ret;
 		}
 
-		if (sflag) {
-			puts(status);
-			fflush(stdout);
-			if (ferror(stdout))
-				die("puts:");
-		} else {
-			if (XStoreName(dpy, DefaultRootWindow(dpy), status) < 0)
-				die("XStoreName: Allocation failed");
-			XFlush(dpy);
-		}
+		puts(status);
+		fflush(stdout);
+		if (ferror(stdout))
+			die("puts:");
 
 		if (!done) {
 			if (clock_gettime(CLOCK_MONOTONIC, &current) < 0)
@@ -121,12 +106,6 @@ main(int argc, char *argv[])
 					die("nanosleep:");
 		}
 	} while (!done);
-
-	if (!sflag) {
-		XStoreName(dpy, DefaultRootWindow(dpy), NULL);
-		if (XCloseDisplay(dpy) < 0)
-			die("XCloseDisplay: Failed to close display");
-	}
 
 	return 0;
 }
