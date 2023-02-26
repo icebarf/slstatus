@@ -1,4 +1,5 @@
 /* See LICENSE file for copyright and license details. */
+#include "config.h"
 
 /* battery */
 const char *battery_perc(const char *);

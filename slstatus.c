@@ -10,16 +10,8 @@
 #include "slstatus.h"
 #include "util.h"
 
-struct arg {
-	const char *(*func)(const char *);
-	const char *fmt;
-	const char *args;
-};
-
 char buf[1024];
 static volatile sig_atomic_t done;
-
-#include "config.h"
 
 static void
 terminate(const int signo)
@@ -47,10 +39,7 @@ main(int argc, char *argv[])
 {
 	struct sigaction act;
 	struct timespec start, current, diff, intspec, wait;
-	size_t i, len;
-	int ret;
 	char status[MAXLEN];
-	const char *res;
 
 	ARGBEGIN {
 	case '1':
@@ -75,16 +64,8 @@ main(int argc, char *argv[])
 			die("clock_gettime:");
 
 		status[0] = '\0';
-		for (i = len = 0; i < LEN(args); i++) {
-			if (!(res = args[i].func(args[i].args)))
-				res = unknown_str;
 
-			if ((ret = esnprintf(status + len, sizeof(status) - len,
-			                     args[i].fmt, res)) < 0)
-				break;
-
-			len += ret;
-		}
+		get_status(status);
 
 		puts(status);
 		fflush(stdout);

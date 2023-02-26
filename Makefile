@@ -38,11 +38,11 @@ slstatus.o: slstatus.c slstatus.h arg.h config.h config.mk $(REQ:=.h)
 config.h:
 	cp config.def.h $@
 
-slstatus: slstatus.o $(COM:=.o) $(REQ:=.o)
-	$(CC) -o $@ $(LDFLAGS) $(COM:=.o) $(REQ:=.o) slstatus.o $(LDLIBS)
+slstatus: slstatus.o user_status.o $(COM:=.o) $(REQ:=.o)
+	$(CC) -o $@ $(LDFLAGS) $(COM:=.o) $(REQ:=.o) slstatus.o user_status.o $(LDLIBS)
 
 clean:
-	rm -f slstatus slstatus.o $(COM:=.o) $(REQ:=.o)
+	rm -f slstatus slstatus.o user_status.o $(COM:=.o) $(REQ:=.o)
 
 dist:
 	rm -rf "slstatus-$(VERSION)"
