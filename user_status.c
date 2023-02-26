@@ -110,7 +110,26 @@ append_sep(char *restrict s, size_t n, size_t nul, const char *restrict format,
   return nul + ret;
 }
 
-static const char *wrap(const char *s) { return s ? s : unknown_str; }
+/* Hacky wrapper to use upto 5 arguments in a single append statement
+ * s comes from a static buffer that gets overwritten */
+static const char *wrap(const char *s) {
+  enum { BUFS = 5, BUFLEN = 128 };
+
+  static size_t bufi = 0;
+  static char bufs[BUFS][BUFLEN] = {0};
+
+  if (s) {
+    char *buf = bufs[bufi++ % BUFS];
+
+    if (snprintf(buf, BUFLEN, "%s", s) == -1) {
+      die("snprintf:");
+    }
+
+    return buf;
+  }
+
+  return unknown_str;
+}
 
 void get_status(char status[MAXLEN]) {
   static char ibuf[IBUF_SIZE];
