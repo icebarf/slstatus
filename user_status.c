@@ -51,8 +51,12 @@ static int get_default_iface(char ibuf[IBUF_SIZE]) {
 
   int ret = pclose(fp);
 
-  if (ret != 0) {
+  if (ret == -1) {
     die("pclose:");
+  }
+
+  if (ret != 0) {
+    return -1;
   }
 
   char *s = buf;
@@ -133,20 +137,19 @@ static const char *wrap(const char *s) {
 
 void get_status(char status[MAXLEN]) {
   static char ibuf[IBUF_SIZE];
-
-  if (get_default_iface(ibuf) == -1) {
-    die("get_default_iface:");
-  }
-
   size_t nulpos = 0;
 
-  if (is_iface_wireless(ibuf)) {
-    nulpos = append_sep(status, MAXLEN, nulpos, " %s (%s / %s)",
-                        wrap(wifi_essid(ibuf)), wrap(netspeed_rx(ibuf)),
-                        wrap(netspeed_tx(ibuf)));
+  if (get_default_iface(ibuf) == -1) {
+    warn("get_default_iface failed");
   } else {
-    nulpos = append_sep(status, MAXLEN, nulpos, " %s (%s / %s)", ibuf,
-                        wrap(netspeed_rx(ibuf)), wrap(netspeed_tx(ibuf)));
+    if (is_iface_wireless(ibuf)) {
+      nulpos = append_sep(status, MAXLEN, nulpos, " %s (%s / %s)",
+                          wrap(wifi_essid(ibuf)), wrap(netspeed_rx(ibuf)),
+                          wrap(netspeed_tx(ibuf)));
+    } else {
+      nulpos = append_sep(status, MAXLEN, nulpos, " %s (%s / %s)", ibuf,
+                          wrap(netspeed_rx(ibuf)), wrap(netspeed_tx(ibuf)));
+    }
   }
 
   nulpos = append_sep(status, MAXLEN, nulpos, " %s%%", wrap(cpu_perc(NULL)));
