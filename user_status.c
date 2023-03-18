@@ -33,6 +33,8 @@ static bool is_iface_wireless(char ibuf[IBUF_SIZE]) {
     die("opendir:");
   }
 
+  closedir(dir);
+
   return true;
 }
 
