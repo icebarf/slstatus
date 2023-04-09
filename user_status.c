@@ -47,6 +47,8 @@ static int get_default_iface(char ibuf[IBUF_SIZE]) {
 
   char buf[1024] = {0};
 
+  errno = 0;
+
   if (!fgets(buf, sizeof(buf), fp) && errno != 0) {
     die("fgets:");
   }
