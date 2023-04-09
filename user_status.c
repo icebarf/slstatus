@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define SEP(sep) ((struct arg){separator, sep, NULL})
@@ -14,6 +15,7 @@
 enum { IBUF_SIZE = 128 };
 
 static const char *const SEPERATOR = " | ";
+static const char *const BAT = "BAT0";
 
 static bool is_iface_wireless(char ibuf[IBUF_SIZE]) {
   char path[PATH_MAX] = {0};
@@ -139,6 +141,54 @@ static const char *wrap(const char *s) {
   return unknown_str;
 }
 
+static const char *state_to_str(const char state) {
+  switch (state) {
+  case 'o':
+    return "Charged";
+  case '-':
+    return "Discharging";
+  case '+':
+    return "Charging";
+  }
+
+  errno = EINVAL;
+  die("state_to_str:");
+}
+
+static const char *battery_icon(const char *const perc) {
+  enum state {
+    EMPTY,
+    FULL,
+    QUARTER,
+    HALF,
+    THREE_QUARTERS,
+    STATE_MAX,
+  };
+
+  const char *const state_to_icon[STATE_MAX] = {
+      [EMPTY] = "", [FULL] = "",           [QUARTER] = "",
+      [HALF] = "",  [THREE_QUARTERS] = "",
+  };
+
+  unsigned long ul_perc = strtoul(perc, NULL, 10);
+
+  int diffs[STATE_MAX] = {
+      [EMPTY] = ul_perc - 0,           [FULL] = ul_perc - 100,
+      [QUARTER] = ul_perc - 25,        [HALF] = ul_perc - 50,
+      [THREE_QUARTERS] = ul_perc - 75,
+  };
+
+  enum state closest_state = EMPTY;
+
+  for (size_t i = FULL; i < STATE_MAX; i++) {
+    if (abs(diffs[i]) < abs(diffs[closest_state])) {
+      closest_state = i;
+    }
+  }
+
+  return state_to_icon[closest_state];
+}
+
 void get_status(char status[MAXLEN]) {
   static char ibuf[IBUF_SIZE];
   size_t nulpos = 0;
@@ -155,6 +205,14 @@ void get_status(char status[MAXLEN]) {
                           wrap(netspeed_rx(ibuf)), wrap(netspeed_tx(ibuf)));
     }
   }
+
+  const char *const remaining = wrap(battery_remaining(BAT));
+  const char *const state = wrap(battery_state(BAT));
+  const char *const perc = wrap(battery_perc(BAT));
+
+  nulpos = append_sep(status, MAXLEN, nulpos, "%s %s%% (%s%s%s)",
+                      battery_icon(perc), perc, state_to_str(*state),
+                      strlen(remaining) ? ", " : "", remaining);
 
   nulpos = append_sep(status, MAXLEN, nulpos, " %s%%", wrap(cpu_perc(NULL)));
   nulpos = append_sep(status, MAXLEN, nulpos, " %s%% (%s%%)",
