@@ -6,6 +6,9 @@ static const unsigned interval = 1000;
 /* text to show if no value can be retrieved */
 static const char unknown_str[] = "n/a";
 
+/* datetime format (see man 3 strftime) */
+static const char datetime_format[] = "%a %d %b %Y %R:%S";
+
 /* maximum output string length */
 #define MAXLEN 2048
 
