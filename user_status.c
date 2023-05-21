@@ -153,7 +153,6 @@ static const char *state_to_str(const char state) {
 
   errno = EINVAL;
   die("state_to_str:");
-  return NULL; // supress control reaches end of non void function warning
 }
 
 static const char *battery_icon(const char *const perc) {
