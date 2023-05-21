@@ -33,7 +33,7 @@ warn(const char *fmt, ...)
 	va_end(ap);
 }
 
-void
+_Noreturn void
 die(const char *fmt, ...)
 {
 	va_list ap;

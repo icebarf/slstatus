@@ -218,5 +218,5 @@ void get_status(char status[MAXLEN]) {
   nulpos = append_sep(status, MAXLEN, nulpos, " %s%% (%s%%)",
                       wrap(ram_perc(NULL)), wrap(swap_perc(NULL)));
   nulpos =
-      append_sep(status, MAXLEN, nulpos, "%s", wrap(datetime("%a %b %d %r")));
+      append_sep(status, MAXLEN, nulpos, "%s", wrap(datetime(DATETIME_FORMAT)));
 }
