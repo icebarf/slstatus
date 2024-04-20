@@ -55,6 +55,10 @@ static int get_default_iface(char ibuf[IBUF_SIZE]) {
     die("fgets:");
   }
 
+  while (fgetc(fp) != EOF) {
+    /* Drain the pipe */
+  }
+
   int ret = pclose(fp);
 
   if (ret == -1) {
