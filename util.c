@@ -1,6 +1,8 @@
 /* See LICENSE file for copyright and license details. */
+#include <dirent.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -141,3 +143,14 @@ pscanf(const char *path, const char *fmt, ...)
 
 	return (n == EOF) ? -1 : n;
 }
+
+int
+dir_exists(const char* path)
+{
+	DIR* dir = opendir(path);
+	if (dir == NULL)
+		return false;
+	closedir(dir);
+	return true;
+}
+

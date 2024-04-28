@@ -15,7 +15,8 @@
 enum { IBUF_SIZE = 128 };
 
 static const char *const SEPERATOR = " | ";
-static const char *const BAT = "BAT0";
+static const char *const BAT0 = "BAT0";
+static const char *const BAT1 = "BAT1"; // optional
 
 static bool is_iface_wireless(char ibuf[IBUF_SIZE]) {
   char path[PATH_MAX] = {0};
@@ -210,13 +211,24 @@ void get_status(char status[MAXLEN]) {
     }
   }
 
-  const char *const remaining = wrap(battery_remaining(BAT));
-  const char *const state = wrap(battery_state(BAT));
-  const char *const perc = wrap(battery_perc(BAT));
-
+  const char *const remaining0 = wrap(battery_remaining(BAT0));
+  const char *const state0 = wrap(battery_state(BAT0));
+  const char *const perc0 = wrap(battery_perc(BAT0));
+  
   nulpos = append_sep(status, MAXLEN, nulpos, "%s %s%% (%s%s%s)",
-                      battery_icon(perc), perc, state_to_str(*state),
-                      strlen(remaining) ? ", " : "", remaining);
+                      battery_icon(perc0), perc0, state_to_str(*state0),
+                      strlen(remaining0) ? ", " : "", remaining0);
+
+  bool other_battery_exists = dir_exists("/sys/class/power_supply/BAT1");
+
+  if (other_battery_exists) {
+    const char *const remaining1 = wrap(battery_remaining(BAT1));
+    const char *const state1 = wrap(battery_state(BAT1));
+    const char *const perc1 = wrap(battery_perc(BAT1));
+    nulpos = append_sep(status, MAXLEN, nulpos, "%s %s%% (%s%s%s)",
+                        battery_icon(perc1), perc1, state_to_str(*state1),
+                        strlen(remaining1) ? ", " : "", remaining1);
+  }
 
   nulpos = append_sep(status, MAXLEN, nulpos, " %s%%", wrap(cpu_perc(NULL)));
   nulpos = append_sep(status, MAXLEN, nulpos, " %s%% (%s%%)",
